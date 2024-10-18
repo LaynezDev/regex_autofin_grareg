@@ -16,3 +16,11 @@ graph TD
 ```
 
 - Gramatica Regular
+
+## Authors
+
+- [@Angel Mario Laynez Zacarias](https://www.github.com/LaynezDev)
+- [@Eli Esau Mendez Ramos ](https://www.github.com/)
+- [@Jorge Estuardo Perez Vasquez ](https://www.github.com/)
+
+![Logo](https://umg.edu.gt/favicon.png)
