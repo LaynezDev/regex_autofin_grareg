@@ -47,28 +47,44 @@ function regexToMermaid(regex) {
         for (let char of exp) {
             ttlLetra++;
             if (char === '*') {
-                diagramaMermaid += `${state} -->|0 o más| ${estados[estados.length - 1]};`;
+                if (estados[estados.length - 1] == undefined) {
+                    diagramaMermaid = diagramaMermaid.replace("Start", "(Start)");
+                    diagramaMermaid += `${state} -->|${exp[exp.indexOf(char) - 1]} 0 o más| ${state};`;
+                } else {
+                    diagramaMermaid += `${state} -->|${exp[exp.indexOf(char) - 1]} 0 o más| ${estados[estados.length - 1]};`;
+                }
+                //diagramaMermaid += `${estados[estados.length]} -->|0 o más| ${estados[estados.length - 1]};`;
             } else if (char === '|') {
                 charOr = true;
-                //let altState = crearEstado();
+            } else if (char == '+') {
 
-                //estados.push(altState);
-            } else if (char !== '(' && char !== ')') {
-                let nextState = crearEstado();
-                if (charOr == true) {
-                    charOr = false
-                    diagramaMermaid += `${oldState} --${char}--> ${nextState}((q${ttlLetra}));`;
-                } else {
-                    //let nextState = crearEstado();
-                    if (ttlLetra == qtyLetra) {
-                        diagramaMermaid += `${state} --${char}--> ${nextState}(((q${ttlLetra})));`;
-                    } else {
-                        diagramaMermaid += `${state} --${char}--> ${nextState}((q${ttlLetra}));`;
-                    }
+                diagramaMermaid += `${state} -->| ${exp[exp.indexOf(char) - 1]} 0 o más| ${estados[estados.length - 1]};`;
+                if (ttlLetra == qtyLetra) {
+                    diagramaMermaid = diagramaMermaid.replace(`q${ttlLetra - 1}`, `(q${ttlLetra - 1})`)
                 }
-                oldState = state
-                estados.push(nextState);
-                state = nextState;
+
+            } else if (char !== '(' && char !== ')') {
+                if (exp[exp.indexOf(char) + 1] != '*') {
+                    let nextState = crearEstado();
+                    if (charOr == true) {
+                        charOr = false
+                        diagramaMermaid += `${oldState} --${char}--> ${nextState}((q${ttlLetra}));`;
+                    } else {
+                        //let nextState = crearEstado();
+                        if (ttlLetra == qtyLetra) {
+                            diagramaMermaid += `${state} --${char}--> ${nextState}(((q${ttlLetra})));`;
+                        } else {
+                            diagramaMermaid += `${state} --${char}--> ${nextState}((q${ttlLetra}));`;
+                        }
+                    }
+                    if (char == ")") {
+                        oldState = state
+                    }
+                    estados.push(nextState);
+                    state = nextState;
+                } else {
+                    //ttlLetra--
+                }
             }
         }
 
