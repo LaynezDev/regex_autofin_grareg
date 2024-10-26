@@ -1,25 +1,30 @@
-
 mermaid.initialize({ startOnLoad: true });
 $("#btnGenerar").click(async function (e) {
     let txtExpReg = $("#txtExpresion").val();
     mermaid.initialize({ startOnLoad: false });
 
     // Example of using the render function
-    const drawDiagram = async function () {
+    const drawDiagram = async function (a) {
         element = document.querySelector('#mermaid');
         const graphDefinition = regexToMermaid(txtExpReg);
-        const { svg } = await mermaid.render('mermaid', graphDefinition);
+        const { svg } = await mermaid.render('mermaid', graphDefinition[0]);
         $('#divSVG').append(
             $("<div>")
                 .attr("id", "mermaid")
                 .addClass('col-sm-12')
                 .html(svg)
         );
+        return graphDefinition[1];
     };
-
-    await drawDiagram();
-
-    console.log(regexToMermaid(txtExpReg))
+    let texto = await drawDiagram();
+    texto = texto.replace("S0","*")
+    texto = texto.replaceAll("S","q")
+    texto = texto.replace("*","S")
+    texto = texto.replaceAll("\n","<br>")
+    texto = texto.replaceAll("q0","S")
+    $("#gramaticaRegular").html(texto)
+    console.log(texto);
+    //console.log(regexToMermaid(txtExpReg))
 });
 
 function renderMermaid(content) {
@@ -30,6 +35,7 @@ function renderMermaid(content) {
 
 function regexToMermaid(regex) {
     let diagramaMermaid = "graph TD;";
+    let gramaticaRegular = "";
     let contadorEstado = 0;
 
     const crearEstado = () => `S${contadorEstado++}`;
@@ -50,8 +56,10 @@ function regexToMermaid(regex) {
                 if (estados[estados.length - 1] == undefined) {
                     diagramaMermaid = diagramaMermaid.replace("Start", "(Start)");
                     diagramaMermaid += `${state} -->|${exp[exp.indexOf(char) - 1]} 0 o más| ${state};`;
+                    gramaticaRegular += `${state} -->${exp[exp.indexOf(char) - 1]} ${state}\n`;
                 } else {
                     diagramaMermaid += `${state} -->|${exp[exp.indexOf(char) - 1]} 0 o más| ${estados[estados.length - 1]};`;
+                    gramaticaRegular += `${state} -->${exp[exp.indexOf(char) - 1]} ${estados[estados.length - 1]}\n`;
                 }
                 //diagramaMermaid += `${estados[estados.length]} -->|0 o más| ${estados[estados.length - 1]};`;
             } else if (char === '|') {
@@ -59,8 +67,10 @@ function regexToMermaid(regex) {
             } else if (char == '+') {
 
                 diagramaMermaid += `${state} -->| ${exp[exp.indexOf(char) - 1]} 0 o más| ${estados[estados.length - 1]};`;
+                gramaticaRegular += `${state} --> ${exp[exp.indexOf(char) - 1]} ${estados[estados.length - 1]};`;
                 if (ttlLetra == qtyLetra) {
                     diagramaMermaid = diagramaMermaid.replace(`q${ttlLetra - 1}`, `(q${ttlLetra - 1})`)
+                    gramaticaRegular = diagramaMermaid.replace(`q${ttlLetra - 1}`, `(q${ttlLetra - 1})`)
                 }
 
             } else if (char !== '(' && char !== ')') {
@@ -69,12 +79,16 @@ function regexToMermaid(regex) {
                     if (charOr == true) {
                         charOr = false
                         diagramaMermaid += `${oldState} --${char}--> ${nextState}((q${ttlLetra}));`;
+                        gramaticaRegular += `${oldState} -->${char} ${nextState}\n`;
                     } else {
                         //let nextState = crearEstado();
                         if (ttlLetra == qtyLetra) {
                             diagramaMermaid += `${state} --${char}--> ${nextState}(((q${ttlLetra})));`;
+                            gramaticaRegular += `${state} -->${char} ${nextState}\n`;
                         } else {
                             diagramaMermaid += `${state} --${char}--> ${nextState}((q${ttlLetra}));`;
+                            gramaticaRegular += `${state} -->${char} ${nextState}\n`;
+
                         }
                     }
                     if (char == ")") {
@@ -87,7 +101,6 @@ function regexToMermaid(regex) {
                 }
             }
         }
-
         return estados;
     };
 
@@ -98,7 +111,7 @@ function regexToMermaid(regex) {
     processRegex(regex, startState);
     //diagramaMermaid += `S${contadorEstado - 1} -->S${contadorEstado - 1}(((Fin)))`;
 
-    return diagramaMermaid;
+    return [diagramaMermaid,gramaticaRegular];
 }
 
 $("#btnGuardarSVG").click(function () {
@@ -119,8 +132,8 @@ $("#btnGuardarSVG").click(function () {
 })
 
 
-$("#btnGenerar").click(async function (e) {
-    let txtExpReg = $("#txtExpresion").val();
-    console.log(regexToMermaid(txtExpReg))
-});
+// $("#btnGenerar").click(async function (e) {
+//     let txtExpReg = $("#txtExpresion").val();
+   
+// });
 
